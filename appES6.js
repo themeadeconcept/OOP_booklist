@@ -62,6 +62,63 @@ class UI {
   }
 }
 
+// Local Storage Class
+class Store {
+  static getBooks() {
+    let books;
+    //if there are no books in local storage / return an empty array
+    if (localStorage.getItem("books") === null) {
+      books = [];
+    } else {
+      //if storage has books then parse that into my array
+      books = JSON.parse(localStorage.getItem("books"));
+    }
+
+    return books;
+  }
+
+  static displayBooks() {
+    // Get books array
+    const books = Store.getBooks();
+
+    books.forEach(function (book) {
+      // First instantiate class then you can use its methods
+      const ui = new UI();
+
+      //add book to UI
+      ui.addBookToList(book);
+    });
+  }
+
+  static addBook(book) {
+    // Get books array
+    const books = Store.getBooks();
+
+    // push new book into books array
+    books.push(book);
+
+    // set local storage with the new books array named books
+    localStorage.setItem("books", JSON.stringify(books));
+  }
+
+  static removeBook(isbn) {
+    // Get books array
+    const books = Store.getBooks();
+
+    books.forEach(function (book, index) {
+      if (book.isbn === isbn) {
+        books.splice(index, 1);
+      }
+    });
+
+    localStorage.setItem("books", JSON.stringify(books));
+  }
+}
+
+// DOM Load Event
+document.addEventListener("DOMContentLoaded", Store.displayBooks);
+
+//Event Listener for adding a book
 document.getElementById("book-form").addEventListener("submit", function (e) {
   // Get form values
   const title = document.getElementById("title").value,
@@ -83,6 +140,9 @@ document.getElementById("book-form").addEventListener("submit", function (e) {
     // Add book to list
     ui.addBookToList(book);
 
+    // Add to local storage;
+    Store.addBook(book);
+
     // Show successfully added book
     ui.showAlert("Book Added!", "success");
 
@@ -98,7 +158,11 @@ document.getElementById("book-list").addEventListener("click", function (e) {
   //Instantiate the UI
   const ui = new UI();
 
+  // Delete the book
   ui.deleteBook(e.target);
+
+  // Remove from local storage
+  Store.removeBook(e.target.parentElement.previousElementSibling.textContent);
 
   e.preventDefault();
 });
